@@ -17,10 +17,13 @@ import {
   RadioButton,
   Divider,
   IconButton,
+  Surface,
+  useTheme,
 } from 'react-native-paper';
 import firestore from '@react-native-firebase/firestore';
 
 const QuestionScreen = ({route, navigation}) => {
+  const theme = useTheme();
   const {topicId, topicName} = route.params;
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -230,7 +233,7 @@ const QuestionScreen = ({route, navigation}) => {
     const isExpanded = expandedQuestionId === item.id;
 
     return (
-      <Card style={styles.questionCard} mode="outlined">
+      <Surface style={styles.questionCard} elevation={2}>
         <TouchableOpacity
           onPress={() => setExpandedQuestionId(isExpanded ? null : item.id)}>
           <Card.Content>
@@ -238,14 +241,28 @@ const QuestionScreen = ({route, navigation}) => {
             <View style={styles.questionHeader}>
               <View style={styles.questionTextContainer}>
                 <View style={styles.questionNumberContainer}>
-                  <Text style={styles.questionNumber}>{index + 1}.</Text>
-                  <Text variant="titleMedium" style={styles.questionText}>
-                    {item.text?.en || ''}
-                  </Text>
+                  <View style={styles.numberBadge}>
+                    <Text style={styles.questionNumber}>{index + 1}</Text>
+                  </View>
+                  <View style={styles.questionsContainer}>
+                    <View style={styles.questionWrapper}>
+                      <View style={styles.languageLabel}>
+                        <Text style={styles.languageText}>EN</Text>
+                      </View>
+                      <Text variant="titleMedium" style={styles.questionText}>
+                        {item.text?.en || ''}
+                      </Text>
+                    </View>
+                    <View style={styles.questionWrapper}>
+                      <View style={styles.languageLabel}>
+                        <Text style={styles.languageText}>HI</Text>
+                      </View>
+                      <Text variant="bodyMedium" style={styles.hindiText}>
+                        {item.text?.hi || ''}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-                <Text variant="titleMedium" style={styles.hindiText}>
-                  {item.text?.hi || ''}
-                </Text>
               </View>
               <IconButton
                 icon={isExpanded ? 'chevron-up' : 'chevron-down'}
@@ -265,29 +282,42 @@ const QuestionScreen = ({route, navigation}) => {
                         styles.optionRow,
                         item.correctOption === option && styles.correctOptionRow,
                       ]}>
-                      <Text
-                        style={[
-                          styles.optionLabel,
-                          item.correctOption === option && styles.correctOptionText,
+                      <View style={[
+                        styles.optionLabel,
+                        item.correctOption === option && styles.correctOptionLabel
+                      ]}>
+                        <Text style={[
+                          styles.optionLabelText,
+                          item.correctOption === option && styles.correctOptionText
                         ]}>
-                        {option}:
-                      </Text>
+                          {option}
+                        </Text>
+                      </View>
                       <View style={styles.optionContent}>
-                        <Text
-                          style={
-                            item.correctOption === option
-                              ? styles.correctOptionText
-                              : null
-                          }>
-                          {item.options?.[option]?.en || ''}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.hindiText,
-                            item.correctOption === option && styles.correctOptionText,
-                          ]}>
-                          {item.options?.[option]?.hi || ''}
-                        </Text>
+                        <View style={styles.optionTextWrapper}>
+                          <View style={styles.languageLabel}>
+                            <Text style={styles.languageText}>EN</Text>
+                          </View>
+                          <Text
+                            style={[
+                              styles.optionText,
+                              item.correctOption === option && styles.correctOptionText
+                            ]}>
+                            {item.options?.[option]?.en || ''}
+                          </Text>
+                        </View>
+                        <View style={styles.optionTextWrapper}>
+                          <View style={styles.languageLabel}>
+                            <Text style={styles.languageText}>HI</Text>
+                          </View>
+                          <Text
+                            style={[
+                              styles.hindiText,
+                              item.correctOption === option && styles.correctOptionText,
+                            ]}>
+                            {item.options?.[option]?.hi || ''}
+                          </Text>
+                        </View>
                       </View>
                     </View>
                   ))}
@@ -299,6 +329,7 @@ const QuestionScreen = ({route, navigation}) => {
                     icon="pencil"
                     size={20}
                     onPress={() => showEditModal(item)}
+                    iconColor={theme.colors.primary}
                   />
                   <IconButton
                     icon="delete"
@@ -311,25 +342,38 @@ const QuestionScreen = ({route, navigation}) => {
             )}
           </Card.Content>
         </TouchableOpacity>
-      </Card>
+      </Surface>
     );
   };
 
   return (
     <View style={styles.container}>
       {/* Total Questions Count */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.totalQuestionsText}>
-          Total Questions: {questions.length}
-        </Text>
-      </View>
+      <Surface style={styles.headerContainer} elevation={2}>
+        <View style={styles.headerContent}>
+          <Text style={styles.totalQuestionsText}>
+            Total Questions: {questions.length}
+          </Text>
+          <Button
+            mode="contained"
+            onPress={showAddModal}
+            style={styles.addButton}
+            icon="plus">
+            Add Question
+          </Button>
+        </View>
+      </Surface>
 
       {loading ? (
-        <Text style={styles.loadingText}>Loading...</Text>
+        <View style={styles.centerContainer}>
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
       ) : questions.length === 0 ? (
-        <Text style={styles.noQuestionsText}>
-          No questions found. Add some questions!
-        </Text>
+        <View style={styles.centerContainer}>
+          <Text style={styles.noQuestionsText}>
+            No questions found. Add some questions!
+          </Text>
+        </View>
       ) : (
         <FlatList
           data={questions}
@@ -338,9 +382,6 @@ const QuestionScreen = ({route, navigation}) => {
           contentContainerStyle={styles.listContainer}
         />
       )}
-      <Button mode="contained" onPress={showAddModal} style={styles.addButton}>
-        Add Question
-      </Button>
 
       {/* Add/Edit Question Modal */}
       <Portal>
@@ -361,6 +402,7 @@ const QuestionScreen = ({route, navigation}) => {
               mode="outlined"
               style={styles.input}
               multiline
+              numberOfLines={3}
             />
             <TextInput
               label="Question (Hindi)"
@@ -369,6 +411,7 @@ const QuestionScreen = ({route, navigation}) => {
               mode="outlined"
               style={styles.input}
               multiline
+              numberOfLines={3}
             />
 
             <Divider style={styles.divider} />
@@ -477,90 +520,205 @@ const QuestionScreen = ({route, navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#6200ee', // Purple background
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 16,
-    backgroundColor: '#f8f9fa',
+  },
+  headerContainer: {
+    backgroundColor: '#fff',
+    padding: 16,
+    marginBottom: 8,
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 8,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalQuestionsText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#6200ee', // Purple text
   },
   addButton: {
-    marginBottom: 16,
+    marginLeft: 16,
   },
   listContainer: {
-    paddingBottom: 20,
+    padding: 16,
   },
   loadingText: {
-    textAlign: 'center',
-    marginTop: 20,
+    fontSize: 16,
+    color: '#fff', // White text for loading state
   },
   noQuestionsText: {
-    textAlign: 'center',
-    marginTop: 20,
+    fontSize: 16,
+    color: '#fff', // White text for empty state
     fontStyle: 'italic',
+    textAlign: 'center',
   },
   questionCard: {
-    marginBottom: 16,
+    marginBottom: 12,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+  },
+  questionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: 2,
+  },
+  questionTextContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
+  questionNumberContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  numberBadge: {
+    backgroundColor: '#ede7f6',
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+    marginTop: 2,
+  },
+  questionsContainer: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  questionWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  languageLabel: {
+    backgroundColor: '#ede7f6',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginRight: 8,
+    marginTop: 2,
+    minWidth: 32,
+  },
+  languageText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#6200ee',
+    textAlign: 'center',
   },
   questionText: {
     fontWeight: 'bold',
-    marginBottom: 4,
+    flex: 1,
+    color: '#000',
+    fontSize: 15,
   },
   hindiText: {
-    fontStyle: 'italic',
-    marginBottom: 8,
+    fontWeight: 'bold',
+    flex: 1,
+    color: '#000',
+    fontSize: 15,
+  },
+  expandedContent: {
+    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    paddingTop: 12,
   },
   optionsContainer: {
-    marginTop: 12,
+    marginTop: 8,
   },
   optionRow: {
     flexDirection: 'row',
     marginVertical: 4,
-    paddingVertical: 4,
-    paddingHorizontal: 2,
-    borderRadius: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: '#f5f5f5',
   },
   correctOptionRow: {
-    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    backgroundColor: '#e8f5e9',
   },
   optionLabel: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#ede7f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  correctOptionLabel: {
+    backgroundColor: '#c8e6c9',
+  },
+  optionLabelText: {
     fontWeight: 'bold',
-    marginRight: 8,
-    width: 24,
+    color: '#6200ee',
+    fontSize: 14,
   },
   optionContent: {
     flex: 1,
+    paddingVertical: 2,
+  },
+  optionTextWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  optionText: {
+    flex: 1,
+    color: '#000',
+    fontSize: 14,
   },
   correctOptionText: {
-    color: '#4CAF50',
+    color: '#2e7d32',
     fontWeight: 'bold',
   },
   actionContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 8,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
   },
   modalContainer: {
     backgroundColor: 'white',
     padding: 20,
     margin: 20,
-    borderRadius: 5,
+    borderRadius: 8,
     maxHeight: '80%',
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 20,
+    color: '#6200ee', // Purple text
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginVertical: 8,
+    marginVertical: 12,
+    color: '#333',
   },
   input: {
-    marginBottom: 8,
+    marginBottom: 12,
   },
   divider: {
-    marginVertical: 8,
+    marginVertical: 12,
   },
   radioContainer: {
-    marginVertical: 8,
+    marginVertical: 12,
   },
   radioGroup: {
     flexDirection: 'row',
@@ -575,53 +733,11 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 16,
+    marginTop: 20,
     marginBottom: 20,
   },
   button: {
-    marginLeft: 8,
-  },
-  questionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  questionTextContainer: {
-    flex: 1,
-    marginRight: 8,
-  },
-  expandedContent: {
-    marginTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    paddingTop: 16,
-  },
-  headerContainer: {
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  totalQuestionsText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2196F3',
-  },
-  questionNumberContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  questionNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 8,
-    color: '#666',
-    minWidth: 24,
+    marginLeft: 12,
   },
 });
 

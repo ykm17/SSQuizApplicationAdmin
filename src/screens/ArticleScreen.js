@@ -136,6 +136,17 @@ const ArticlesScreen = ({ navigation }) => {
     }
   };
 
+  const deleteImageFromStorage = async (imageUrl) => {
+    try {
+      if (!imageUrl) return;
+      const imageRef = storage().refFromURL(imageUrl);
+      await imageRef.delete();
+    } catch (error) {
+      console.error('Error deleting image from storage:', error);
+      // Continue with article deletion even if image deletion fails
+    }
+  };
+
   const saveArticle = async () => {
     // Prevent multiple submissions
     if (isSubmitting) {
@@ -167,7 +178,13 @@ const ArticlesScreen = ({ navigation }) => {
     try {
       setIsSubmitting(true);
       let finalImageUrl = imageUrl;
+      
       if (imageUri) {
+        // If we're in edit mode and have an old image, delete it first
+        if (editMode && imageUrl) {
+          await deleteImageFromStorage(imageUrl);
+        }
+        
         finalImageUrl = await uploadImage();
         if (!finalImageUrl) {
           Alert.alert('Error', 'Failed to upload image. Please try again.');
@@ -323,11 +340,11 @@ const ArticlesScreen = ({ navigation }) => {
       />
 
       <View style={styles.imageContainer}>
-        {imageUrl && (
-          <Image source={{ uri: imageUrl }} style={styles.previewImage} />
-        )}
-        {imageUri && (
-          <Image source={{ uri: imageUri }} style={styles.previewImage} />
+        {(imageUri || imageUrl) && (
+          <Image 
+            source={{ uri: imageUri || imageUrl }} 
+            style={styles.previewImage} 
+          />
         )}
         <Button
           mode="outlined"
@@ -335,7 +352,7 @@ const ArticlesScreen = ({ navigation }) => {
           style={styles.imageButton}
           labelStyle={styles.imageButtonLabel}
           disabled={isSubmitting}>
-          {imageUrl || imageUri ? 'Change Image' : 'Select Image *'}
+          {imageUri || imageUrl ? 'Change Image' : 'Select Image *'}
         </Button>
       </View>
 

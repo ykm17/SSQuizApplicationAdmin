@@ -6,6 +6,7 @@ import {
   ScrollView,
   Alert,
   Image,
+  TouchableOpacity,
 } from 'react-native';
 import {
   Button,
@@ -76,7 +77,7 @@ const ArticlesScreen = ({ navigation }) => {
     setDescriptionHi(article.description?.hi || '');
     setReferenceLink(article.referenceLink || '');
     setImageUrl(article.imageUrl || '');
-    setImageUri(null); // Reset image URI when entering edit mode
+    setImageUri(null);
     setModalVisible(true);
   };
 
@@ -143,17 +144,15 @@ const ArticlesScreen = ({ navigation }) => {
       await imageRef.delete();
     } catch (error) {
       console.error('Error deleting image from storage:', error);
-      // Continue with article deletion even if image deletion fails
     }
   };
 
   const saveArticle = async () => {
-    // Prevent multiple submissions
     if (isSubmitting) {
       return;
     }
 
-    // Validate all required fields
+    // Validation checks
     if (!titleEn.trim()) {
       Alert.alert('Error', 'Please enter the article title in English');
       return;
@@ -180,7 +179,6 @@ const ArticlesScreen = ({ navigation }) => {
       let finalImageUrl = imageUrl;
       
       if (imageUri) {
-        // If we're in edit mode and have an old image, delete it first
         if (editMode && imageUrl) {
           await deleteImageFromStorage(imageUrl);
         }
@@ -236,29 +234,22 @@ const ArticlesScreen = ({ navigation }) => {
           text: 'Delete',
           onPress: async () => {
             try {
-              // Hide the modal first
               setModalVisible(false);
 
-              // Get the article data to get the image URL
               const articleDoc = await firestore().collection('articles').doc(articleId).get();
               const articleData = articleDoc.data();
 
-              // Delete the image from Firebase Storage if it exists
               if (articleData?.imageUrl) {
                 try {
-                  // Extract the file path from the URL
                   const imageRef = storage().refFromURL(articleData.imageUrl);
                   await imageRef.delete();
                 } catch (error) {
                   console.error('Error deleting image from storage:', error);
-                  // Continue with article deletion even if image deletion fails
                 }
               }
 
-              // Delete the article document
               await firestore().collection('articles').doc(articleId).delete();
               
-              // Fetch updated list of articles
               fetchArticles();
             } catch (error) {
               console.error('Error deleting article:', error);
@@ -272,7 +263,7 @@ const ArticlesScreen = ({ navigation }) => {
   };
 
   const renderArticle = ({ item }) => (
-    <Card style={styles.articleCard} mode="elevated" onPress={() => showEditModal(item)}>
+    <Card style={styles.articleCard} mode="elevated">
       <Card.Content style={styles.articleListContent}>
         {item.imageUrl && (
           <Image source={{ uri: item.imageUrl }} style={styles.articleListImage} />
@@ -281,6 +272,20 @@ const ArticlesScreen = ({ navigation }) => {
           <Text variant="titleMedium" style={styles.articleListTitle}>
             {item.title?.en}
           </Text>
+        </View>
+        <View style={styles.articleListActionContainer}>
+          <TouchableOpacity 
+            style={styles.actionButton} 
+            onPress={() => showEditModal(item)}
+          >
+            <Text style={styles.actionButtonText}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.deleteActionButton]} 
+            onPress={() => deleteArticle(item.id)}
+          >
+            <Text style={[styles.actionButtonText, styles.deleteActionButtonText]}>Delete</Text>
+          </TouchableOpacity>
         </View>
       </Card.Content>
     </Card>
@@ -356,18 +361,6 @@ const ArticlesScreen = ({ navigation }) => {
         </Button>
       </View>
 
-      {editMode && (
-        <View style={styles.actionContainer}>
-          <Button
-            mode="contained"
-            onPress={() => deleteArticle(currentArticleId)}
-            style={styles.deleteButton}
-            labelStyle={styles.buttonLabel}>
-            Delete Article
-          </Button>
-        </View>
-      )}
-
       <View style={styles.buttonContainer}>
         <Button
           mode="contained"
@@ -407,7 +400,7 @@ const ArticlesScreen = ({ navigation }) => {
       <Portal>
         <Modal
           visible={modalVisible}
-          onDismiss={() => {}}
+          onDismiss={hideModal}
           contentContainerStyle={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
@@ -567,6 +560,7 @@ const styles = StyleSheet.create({
   articleListContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   articleListImage: {
     width: 80,
@@ -617,6 +611,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF5252',
     borderRadius: 8,
     width: '100%',
+  },
+  articleListActionContainer: {
+    flexDirection: 'column',
+  },
+  actionButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginVertical: 4,
+    backgroundColor: '#e0e0e0',
+  },
+  deleteActionButton: {
+    backgroundColor: '#FF5252',
+  },
+  actionButtonText: {
+    color: '#000',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  deleteActionButtonText: {
+    color: 'white',
   },
 });
 

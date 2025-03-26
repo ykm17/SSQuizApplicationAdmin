@@ -134,7 +134,14 @@ const HomeScreen = ({ route, navigation }) => {
   return (
     <LinearGradient colors={['#4c12a1', '#2b076e']} style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Choose Quiz Topic</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Quiz Topic</Text>
+            <View style={styles.countContainer}>
+              <Text style={styles.countNumber}>{topics.length}</Text>
+            </View>
+          </View>
+        </View>
       </View>
 
       {loading ? (
@@ -274,13 +281,48 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 30,
+    paddingBottom: 16,
+  },
+  headerContent: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  titleContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#ffffff',
-    textAlign: 'center',
+    marginRight: 12,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  countContainer: {
+    backgroundColor: '#FFA500',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  countNumber: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   loadingContainer: {
     flex: 1,

@@ -275,6 +275,9 @@ const ArticlesScreen = ({ navigation }) => {
           <Text variant="titleMedium" style={styles.articleListTitle}>
             {item.title?.en}
           </Text>
+          <Text variant="bodyMedium" style={styles.articleListSubtitle} numberOfLines={2}>
+            {item.description?.en}
+          </Text>
         </View>
         <View style={styles.articleListActionContainer}>
           <TouchableOpacity 
@@ -508,9 +511,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   articleCard: {
-    marginBottom: 16,
+    marginBottom: 12,
     borderRadius: 12,
-    elevation: 4,
+    elevation: 2,
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   articleImage: {
     height: 200,
@@ -610,92 +618,75 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
+    padding: 8,
   },
   serialNumberContainer: {
     backgroundColor: '#4c12a1',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
-    marginTop: 4,
+    marginRight: 8,
+    marginTop: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
   },
   serialNumber: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   articleListImage: {
-    width: 80,
-    height: 80,
+    width: 60,
+    height: 60,
     borderRadius: 8,
-    marginRight: 16,
+    marginRight: 12,
+    backgroundColor: '#f5f5f5',
   },
   articleListTextContainer: {
     flex: 1,
+    marginRight: 8,
   },
   articleListTitle: {
     fontWeight: 'bold',
+    fontSize: 15,
+    color: '#333333',
+    marginBottom: 2,
   },
-  articleDetailsContainer: {
-    alignItems: 'center',
-    padding: 16,
-  },
-  articleDetailsImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  articleDetailsTitle: {
-    fontWeight: 'bold',
-    marginBottom: 8,
-    fontSize: 24,
-  },
-  articleDetailsSubtitle: {
-    marginBottom: 16,
-    fontSize: 20,
-  },
-  articleDetailsDescription: {
-    marginBottom: 8,
-    textAlign: 'center',
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  editButton: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 8,
-  },
-  actionContainer: {
-    marginVertical: 16,
-    alignItems: 'center',
-  },
-  deleteButton: {
-    backgroundColor: '#FF5252',
-    borderRadius: 8,
-    width: '100%',
+  articleListSubtitle: {
+    color: '#666666',
+    fontSize: 13,
+    lineHeight: 16,
+    height: 32,
   },
   articleListActionContainer: {
     flexDirection: 'column',
+    justifyContent: 'flex-start',
+    height: '100%',
   },
   actionButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     borderRadius: 6,
-    marginVertical: 4,
-    backgroundColor: '#e0e0e0',
+    marginVertical: 1,
+    backgroundColor: '#f0f0f0',
+    minWidth: 70,
+    alignItems: 'center',
   },
   deleteActionButton: {
     backgroundColor: '#FF5252',
   },
   actionButtonText: {
-    color: '#000',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: '#333333',
+    fontWeight: '600',
+    fontSize: 13,
   },
   deleteActionButtonText: {
-    color: 'white',
+    color: '#ffffff',
   },
 });
 

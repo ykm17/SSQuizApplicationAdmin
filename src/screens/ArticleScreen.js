@@ -29,6 +29,7 @@ const ArticlesScreen = ({ navigation }) => {
   const [editMode, setEditMode] = useState(false);
   const [currentArticleId, setCurrentArticleId] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form states
   const [titleEn, setTitleEn] = useState('');
@@ -75,12 +76,15 @@ const ArticlesScreen = ({ navigation }) => {
     setDescriptionHi(article.description?.hi || '');
     setReferenceLink(article.referenceLink || '');
     setImageUrl(article.imageUrl || '');
+    setImageUri(null); // Reset image URI when entering edit mode
     setModalVisible(true);
   };
 
   const hideModal = () => {
-    setModalVisible(false);
-    resetForm();
+    if (!isSubmitting) {
+      setModalVisible(false);
+      resetForm();
+    }
   };
 
   const resetForm = () => {
@@ -133,17 +137,35 @@ const ArticlesScreen = ({ navigation }) => {
   };
 
   const saveArticle = async () => {
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      return;
+    }
+
+    // Validate all required fields
     if (!titleEn.trim()) {
       Alert.alert('Error', 'Please enter the article title in English');
       return;
     }
-
+    if (!titleHi.trim()) {
+      Alert.alert('Error', 'Please enter the article title in Hindi');
+      return;
+    }
+    if (!descriptionEn.trim()) {
+      Alert.alert('Error', 'Please enter the article description in English');
+      return;
+    }
+    if (!descriptionHi.trim()) {
+      Alert.alert('Error', 'Please enter the article description in Hindi');
+      return;
+    }
     if (!editMode && !imageUri) {
       Alert.alert('Error', 'Please select an image for the article');
       return;
     }
 
     try {
+      setIsSubmitting(true);
       let finalImageUrl = imageUrl;
       if (imageUri) {
         finalImageUrl = await uploadImage();
@@ -156,14 +178,14 @@ const ArticlesScreen = ({ navigation }) => {
       const articleData = {
         title: {
           en: titleEn.trim(),
-          hi: titleHi.trim() || titleEn.trim(),
+          hi: titleHi.trim(),
         },
         description: {
           en: descriptionEn.trim(),
-          hi: descriptionHi.trim() || descriptionEn.trim(),
+          hi: descriptionHi.trim(),
         },
         imageUrl: finalImageUrl,
-        referenceLink: referenceLink.trim(),
+        referenceLink: referenceLink.trim() || null,
         updatedAt: firestore.FieldValue.serverTimestamp(),
       };
 
@@ -179,10 +201,12 @@ const ArticlesScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Error saving article:', error);
       Alert.alert('Error', 'Failed to save article. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const deleteArticle = async articleId => {
+  const deleteArticle = async (articleId) => {
     Alert.alert(
       'Delete Article',
       'Are you sure you want to delete this article? This action cannot be undone.',
@@ -195,6 +219,9 @@ const ArticlesScreen = ({ navigation }) => {
           text: 'Delete',
           onPress: async () => {
             try {
+              // Hide the modal first
+              setModalVisible(false);
+
               // Get the article data to get the image URL
               const articleDoc = await firestore().collection('articles').doc(articleId).get();
               const articleData = articleDoc.data();
@@ -213,6 +240,8 @@ const ArticlesScreen = ({ navigation }) => {
 
               // Delete the article document
               await firestore().collection('articles').doc(articleId).delete();
+              
+              // Fetch updated list of articles
               fetchArticles();
             } catch (error) {
               console.error('Error deleting article:', error);
@@ -226,37 +255,113 @@ const ArticlesScreen = ({ navigation }) => {
   };
 
   const renderArticle = ({ item }) => (
-    <Card style={styles.articleCard} mode="elevated">
-      {item.imageUrl && (
-        <Card.Cover source={{ uri: item.imageUrl }} style={styles.articleImage} />
-      )}
-      <Card.Content>
-        <Text variant="titleLarge" style={styles.articleTitle}>
-          {item.title?.en}
-        </Text>
-        <Text variant="bodyMedium" style={styles.articleDescription}>
-          {item.description?.en}
-        </Text>
-        {item.referenceLink && (
-          <Text variant="bodySmall" style={styles.referenceLink}>
-            Reference: {item.referenceLink}
-          </Text>
+    <Card style={styles.articleCard} mode="elevated" onPress={() => showEditModal(item)}>
+      <Card.Content style={styles.articleListContent}>
+        {item.imageUrl && (
+          <Image source={{ uri: item.imageUrl }} style={styles.articleListImage} />
         )}
-        <View style={styles.actionContainer}>
-          <IconButton
-            icon="pencil"
-            size={20}
-            onPress={() => showEditModal(item)}
-          />
-          <IconButton
-            icon="delete"
-            size={20}
-            onPress={() => deleteArticle(item.id)}
-            iconColor="#FF5252"
-          />
+        <View style={styles.articleListTextContainer}>
+          <Text variant="titleMedium" style={styles.articleListTitle}>
+            {item.title?.en}
+          </Text>
         </View>
       </Card.Content>
     </Card>
+  );
+
+  const renderModalContent = () => (
+    <ScrollView style={styles.modalContent}>
+      <TextInput
+        label="Title (English) *"
+        value={titleEn}
+        onChangeText={setTitleEn}
+        mode="outlined"
+        style={styles.input}
+        error={!titleEn.trim()}
+        disabled={isSubmitting}
+      />
+      <TextInput
+        label="Title (Hindi) *"
+        value={titleHi}
+        onChangeText={setTitleHi}
+        mode="outlined"
+        style={styles.input}
+        error={!titleHi.trim()}
+        disabled={isSubmitting}
+      />
+
+      <TextInput
+        label="Description (English) *"
+        value={descriptionEn}
+        onChangeText={setDescriptionEn}
+        mode="outlined"
+        style={[styles.input, styles.descriptionInput]}
+        multiline
+        numberOfLines={3}
+        error={!descriptionEn.trim()}
+        disabled={isSubmitting}
+      />
+      <TextInput
+        label="Description (Hindi) *"
+        value={descriptionHi}
+        onChangeText={setDescriptionHi}
+        mode="outlined"
+        style={[styles.input, styles.descriptionInput]}
+        multiline
+        numberOfLines={3}
+        error={!descriptionHi.trim()}
+        disabled={isSubmitting}
+      />
+
+      <TextInput
+        label="Reference Link (Optional)"
+        value={referenceLink}
+        onChangeText={setReferenceLink}
+        mode="outlined"
+        style={styles.input}
+        disabled={isSubmitting}
+      />
+
+      <View style={styles.imageContainer}>
+        {imageUrl && (
+          <Image source={{ uri: imageUrl }} style={styles.previewImage} />
+        )}
+        {imageUri && (
+          <Image source={{ uri: imageUri }} style={styles.previewImage} />
+        )}
+        <Button
+          mode="outlined"
+          onPress={selectImage}
+          style={styles.imageButton}
+          labelStyle={styles.imageButtonLabel}
+          disabled={isSubmitting}>
+          {imageUrl || imageUri ? 'Change Image' : 'Select Image *'}
+        </Button>
+      </View>
+
+      {editMode && (
+        <View style={styles.actionContainer}>
+          <Button
+            mode="contained"
+            onPress={() => deleteArticle(currentArticleId)}
+            style={styles.deleteButton}
+            labelStyle={styles.buttonLabel}>
+            Delete Article
+          </Button>
+        </View>
+      )}
+
+      <View style={styles.buttonContainer}>
+        <Button
+          mode="contained"
+          onPress={saveArticle}
+          style={styles.button}
+          loading={uploading || isSubmitting}
+          disabled={isSubmitting}>
+          {editMode ? 'Update Article' : 'Add Article'}
+        </Button>
+      </View>
+    </ScrollView>
   );
 
   return (
@@ -282,97 +387,36 @@ const ArticlesScreen = ({ navigation }) => {
         />
       )}
 
-      <Button
-        mode="contained"
-        onPress={showAddModal}
-        style={styles.addButton}
-        labelStyle={styles.buttonLabel}>
-        Add Article
-      </Button>
-
       <Portal>
         <Modal
           visible={modalVisible}
-          onDismiss={hideModal}
+          onDismiss={() => {}}
           contentContainerStyle={styles.modalContainer}>
-          <ScrollView>
+          <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
               {editMode ? 'Edit Article' : 'Add New Article'}
             </Text>
-
-            <TextInput
-              label="Title (English)"
-              value={titleEn}
-              onChangeText={setTitleEn}
-              mode="outlined"
-              style={styles.input}
+            <IconButton
+              icon="close"
+              size={24}
+              onPress={hideModal}
+              disabled={isSubmitting}
             />
-            <TextInput
-              label="Title (Hindi)"
-              value={titleHi}
-              onChangeText={setTitleHi}
-              mode="outlined"
-              style={styles.input}
-            />
-
-            <TextInput
-              label="Description (English)"
-              value={descriptionEn}
-              onChangeText={setDescriptionEn}
-              mode="outlined"
-              style={styles.input}
-              multiline
-              numberOfLines={4}
-            />
-            <TextInput
-              label="Description (Hindi)"
-              value={descriptionHi}
-              onChangeText={setDescriptionHi}
-              mode="outlined"
-              style={styles.input}
-              multiline
-              numberOfLines={4}
-            />
-
-            <TextInput
-              label="Reference Link"
-              value={referenceLink}
-              onChangeText={setReferenceLink}
-              mode="outlined"
-              style={styles.input}
-            />
-
-            <View style={styles.imageContainer}>
-              {imageUrl && (
-                <Image source={{ uri: imageUrl }} style={styles.previewImage} />
-              )}
-              {imageUri && (
-                <Image source={{ uri: imageUri }} style={styles.previewImage} />
-              )}
-              <Button
-                mode="outlined"
-                onPress={selectImage}
-                style={styles.imageButton}
-                labelStyle={styles.imageButtonLabel}>
-                {imageUrl || imageUri ? 'Change Image' : 'Select Image'}
-              </Button>
-            </View>
-
-            <View style={styles.buttonContainer}>
-              <Button onPress={hideModal} style={styles.button}>
-                Cancel
-              </Button>
-              <Button
-                mode="contained"
-                onPress={saveArticle}
-                style={styles.button}
-                loading={uploading}>
-                {editMode ? 'Update' : 'Add'}
-              </Button>
-            </View>
-          </ScrollView>
+          </View>
+          {renderModalContent()}
         </Modal>
       </Portal>
+
+      <View style={styles.bottomButtonContainer}>
+        <Button
+          mode="contained"
+          onPress={showAddModal}
+          style={styles.addButton}
+          labelStyle={styles.buttonLabel}
+          disabled={isSubmitting}>
+          Add Article
+        </Button>
+      </View>
     </LinearGradient>
   );
 };
@@ -428,12 +472,13 @@ const styles = StyleSheet.create({
   },
   actionContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 8,
+    justifyContent: 'space-around',
+    width: '100%',
+    marginTop: 24,
   },
   addButton: {
-    margin: 16,
     backgroundColor: '#FFA500',
+    borderRadius: 10,
   },
   buttonLabel: {
     fontSize: 16,
@@ -441,15 +486,27 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: 'white',
-    padding: 20,
     margin: 20,
     borderRadius: 12,
     maxHeight: '80%',
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalContent: {
+    padding: 16,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 16,
   },
   input: {
     marginBottom: 16,
@@ -477,6 +534,72 @@ const styles = StyleSheet.create({
   },
   button: {
     marginLeft: 8,
+  },
+  descriptionInput: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  bottomButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    backgroundColor: 'transparent',
+  },
+  articleListContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  articleListImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    marginRight: 16,
+  },
+  articleListTextContainer: {
+    flex: 1,
+  },
+  articleListTitle: {
+    fontWeight: 'bold',
+  },
+  articleDetailsContainer: {
+    alignItems: 'center',
+    padding: 16,
+  },
+  articleDetailsImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  articleDetailsTitle: {
+    fontWeight: 'bold',
+    marginBottom: 8,
+    fontSize: 24,
+  },
+  articleDetailsSubtitle: {
+    marginBottom: 16,
+    fontSize: 20,
+  },
+  articleDetailsDescription: {
+    marginBottom: 8,
+    textAlign: 'center',
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  editButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+  },
+  actionContainer: {
+    marginVertical: 16,
+    alignItems: 'center',
+  },
+  deleteButton: {
+    backgroundColor: '#FF5252',
+    borderRadius: 8,
+    width: '100%',
   },
 });
 

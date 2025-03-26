@@ -388,6 +388,7 @@ const QuestionScreen = ({route, navigation}) => {
         <Modal
           visible={modalVisible}
           onDismiss={hideModal}
+          dismissable={false}
           contentContainerStyle={styles.modalContainer}>
           <ScrollView>
             <Text style={styles.modalTitle}>

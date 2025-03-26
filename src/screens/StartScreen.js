@@ -41,7 +41,7 @@ const StartScreen = ({ navigation }) => {
             
             <Button
               mode="outlined"
-              onPress={() => navigation.navigate('ArticleScreen')}
+              onPress={() => navigation.navigate('Article')}
               style={styles.articleButton}
               labelStyle={styles.articleButtonLabel}
               contentStyle={{paddingVertical: 8}}

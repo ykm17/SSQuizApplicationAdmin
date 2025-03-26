@@ -7,6 +7,7 @@ import {
   Alert,
   Image,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import {
   Button,
@@ -21,6 +22,8 @@ import {
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import * as ImagePicker from 'react-native-image-picker';
+import ImageResizer from '@bam.tech/react-native-image-resizer';
+import RNFS from 'react-native-fs';
 import LinearGradient from 'react-native-linear-gradient';
 
 const ArticlesScreen = ({ navigation }) => {
@@ -117,6 +120,43 @@ const ArticlesScreen = ({ navigation }) => {
     );
   };
 
+  const compressImage = async (uri) => {
+    try {
+      // Get file stats to check size
+      const stats = await RNFS.stat(uri);
+      const fileSizeInKB = stats.size / 1024; // Convert bytes to KB
+
+      // Only compress if file size is greater than 25KB
+      if (fileSizeInKB > 25) {
+        console.log(`Original file size: ${fileSizeInKB.toFixed(2)}KB`);
+        const resizedImage = await ImageResizer.createResizedImage(
+          uri,
+          600, // max width
+          600, // max height
+          'JPEG',
+          50, // quality (0-100)
+          0, // rotation
+          undefined, // outputPath
+          false, // keepMeta
+          { mode: 'contain' } // options
+        );
+
+        // Check compressed file size
+        const compressedStats = await RNFS.stat(resizedImage.uri);
+        const compressedSizeInKB = compressedStats.size / 1024;
+        console.log(`Compressed file size: ${compressedSizeInKB.toFixed(2)}KB`);
+
+        return resizedImage.uri;
+      } else {
+        console.log(`File size (${fileSizeInKB.toFixed(2)}KB) is under 25KB, skipping compression`);
+        return uri;
+      }
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      return uri; // return original uri if compression fails
+    }
+  };
+
   const uploadImage = async () => {
     if (!imageUri) return imageUrl;
 
@@ -125,7 +165,10 @@ const ArticlesScreen = ({ navigation }) => {
       const filename = `articles/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
       const reference = storage().ref(filename);
 
-      await reference.putFile(imageUri);
+      // Compress image before uploading
+      const compressedUri = await compressImage(imageUri);
+      
+      await reference.putFile(compressedUri);
       const url = await reference.getDownloadURL();
       return url;
     } catch (error) {
@@ -416,7 +459,8 @@ const ArticlesScreen = ({ navigation }) => {
         <Modal
           visible={modalVisible}
           onDismiss={hideModal}
-          contentContainerStyle={styles.modalContainer}>
+          contentContainerStyle={styles.modalContainer}
+          dismissable={false}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
               {editMode ? 'Edit Article' : 'Add New Article'}

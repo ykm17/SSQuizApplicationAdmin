@@ -262,9 +262,12 @@ const ArticlesScreen = ({ navigation }) => {
     );
   };
 
-  const renderArticle = ({ item }) => (
+  const renderArticle = ({ item, index }) => (
     <Card style={styles.articleCard} mode="elevated">
       <Card.Content style={styles.articleListContent}>
+        <View style={styles.serialNumberContainer}>
+          <Text style={styles.serialNumber}>{index + 1}</Text>
+        </View>
         {item.imageUrl && (
           <Image source={{ uri: item.imageUrl }} style={styles.articleListImage} />
         )}
@@ -379,7 +382,14 @@ const ArticlesScreen = ({ navigation }) => {
   return (
     <LinearGradient colors={['#4c12a1', '#2b076e']} style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Articles</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Articles</Text>
+            <View style={styles.countContainer}>
+              <Text style={styles.countNumber}>{articles.length}</Text>
+            </View>
+          </View>
+        </View>
       </View>
 
       {loading ? (
@@ -440,13 +450,48 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 30,
+    paddingBottom: 16,
+  },
+  headerContent: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  titleContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#ffffff',
-    textAlign: 'center',
+    marginRight: 12,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  countContainer: {
+    backgroundColor: '#FFA500',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  countNumber: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   loadingContainer: {
     flex: 1,
@@ -563,8 +608,23 @@ const styles = StyleSheet.create({
   },
   articleListContent: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
+  },
+  serialNumberContainer: {
+    backgroundColor: '#4c12a1',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    marginTop: 4,
+  },
+  serialNumber: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   articleListImage: {
     width: 80,

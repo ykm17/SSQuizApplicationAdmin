@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import {
   Button,
@@ -26,6 +27,7 @@ const QuestionScreen = ({route, navigation}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState(null);
+  const [expandedQuestionId, setExpandedQuestionId] = useState(null);
 
   // Form states
   const [questionEn, setQuestionEn] = useState('');
@@ -224,78 +226,103 @@ const QuestionScreen = ({route, navigation}) => {
     }
   };
 
-  const renderQuestion = ({item}) => {
+  const renderQuestion = ({item, index}) => {
+    const isExpanded = expandedQuestionId === item.id;
+
     return (
       <Card style={styles.questionCard} mode="outlined">
-        <Card.Content>
-          {/* English Question */}
-          <Text variant="titleMedium" style={styles.questionText}>
-            {item.text?.en || ''}
-          </Text>
-
-          {/* Hindi Question */}
-          <Text variant="titleMedium" style={styles.hindiText}>
-            {item.text?.hi || ''}
-          </Text>
-
-          <View style={styles.optionsContainer}>
-            {['A', 'B', 'C', 'D'].map(option => (
-              <View
-                key={option}
-                style={[
-                  styles.optionRow,
-                  item.correctOption === option && styles.correctOptionRow,
-                ]}>
-                <Text
-                  style={[
-                    styles.optionLabel,
-                    item.correctOption === option && styles.correctOptionText,
-                  ]}>
-                  {option}:
-                </Text>
-                <View style={styles.optionContent}>
-                  <Text
-                    style={
-                      item.correctOption === option
-                        ? styles.correctOptionText
-                        : null
-                    }>
-                    {item.options?.[option]?.en || ''}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.hindiText,
-                      item.correctOption === option && styles.correctOptionText,
-                    ]}>
-                    {item.options?.[option]?.hi || ''}
+        <TouchableOpacity
+          onPress={() => setExpandedQuestionId(isExpanded ? null : item.id)}>
+          <Card.Content>
+            {/* Question Header */}
+            <View style={styles.questionHeader}>
+              <View style={styles.questionTextContainer}>
+                <View style={styles.questionNumberContainer}>
+                  <Text style={styles.questionNumber}>{index + 1}.</Text>
+                  <Text variant="titleMedium" style={styles.questionText}>
+                    {item.text?.en || ''}
                   </Text>
                 </View>
+                <Text variant="titleMedium" style={styles.hindiText}>
+                  {item.text?.hi || ''}
+                </Text>
               </View>
-            ))}
-          </View>
+              <IconButton
+                icon={isExpanded ? 'chevron-up' : 'chevron-down'}
+                size={24}
+                onPress={() => setExpandedQuestionId(isExpanded ? null : item.id)}
+              />
+            </View>
 
-          {/* Action buttons */}
-          <View style={styles.actionContainer}>
-            <IconButton
-              icon="pencil"
-              size={20}
-              onPress={() => showEditModal(item)}
-            />
-            <IconButton
-              icon="delete"
-              size={20}
-              onPress={() => confirmDelete(item.id)}
-              iconColor="#FF5252"
-            />
-          </View>
-        </Card.Content>
+            {/* Expanded Content */}
+            {isExpanded && (
+              <View style={styles.expandedContent}>
+                <View style={styles.optionsContainer}>
+                  {['A', 'B', 'C', 'D'].map(option => (
+                    <View
+                      key={option}
+                      style={[
+                        styles.optionRow,
+                        item.correctOption === option && styles.correctOptionRow,
+                      ]}>
+                      <Text
+                        style={[
+                          styles.optionLabel,
+                          item.correctOption === option && styles.correctOptionText,
+                        ]}>
+                        {option}:
+                      </Text>
+                      <View style={styles.optionContent}>
+                        <Text
+                          style={
+                            item.correctOption === option
+                              ? styles.correctOptionText
+                              : null
+                          }>
+                          {item.options?.[option]?.en || ''}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.hindiText,
+                            item.correctOption === option && styles.correctOptionText,
+                          ]}>
+                          {item.options?.[option]?.hi || ''}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Action buttons */}
+                <View style={styles.actionContainer}>
+                  <IconButton
+                    icon="pencil"
+                    size={20}
+                    onPress={() => showEditModal(item)}
+                  />
+                  <IconButton
+                    icon="delete"
+                    size={20}
+                    onPress={() => confirmDelete(item.id)}
+                    iconColor="#FF5252"
+                  />
+                </View>
+              </View>
+            )}
+          </Card.Content>
+        </TouchableOpacity>
       </Card>
     );
   };
 
   return (
     <View style={styles.container}>
-      
+      {/* Total Questions Count */}
+      <View style={styles.headerContainer}>
+        <Text style={styles.totalQuestionsText}>
+          Total Questions: {questions.length}
+        </Text>
+      </View>
 
       {loading ? (
         <Text style={styles.loadingText}>Loading...</Text>
@@ -307,7 +334,7 @@ const QuestionScreen = ({route, navigation}) => {
         <FlatList
           data={questions}
           keyExtractor={item => item.id}
-          renderItem={renderQuestion}
+          renderItem={({item, index}) => renderQuestion({item, index})}
           contentContainerStyle={styles.listContainer}
         />
       )}
@@ -553,6 +580,48 @@ const styles = StyleSheet.create({
   },
   button: {
     marginLeft: 8,
+  },
+  questionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  questionTextContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
+  expandedContent: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    paddingTop: 16,
+  },
+  headerContainer: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  totalQuestionsText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2196F3',
+  },
+  questionNumberContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  questionNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 8,
+    color: '#666',
+    minWidth: 24,
   },
 });
 

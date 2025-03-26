@@ -293,6 +293,23 @@ const ArticlesScreen = ({ navigation }) => {
 
   const renderModalContent = () => (
     <ScrollView style={styles.modalContent}>
+      <View style={styles.imageContainer}>
+        {(imageUri || imageUrl) && (
+          <Image 
+            source={{ uri: imageUri || imageUrl }} 
+            style={styles.previewImage} 
+          />
+        )}
+        <Button
+          mode="outlined"
+          onPress={selectImage}
+          style={styles.imageButton}
+          labelStyle={styles.imageButtonLabel}
+          disabled={isSubmitting}>
+          {imageUri || imageUrl ? 'Change Image' : 'Select Image *'}
+        </Button>
+      </View>
+      
       <TextInput
         label="Title (English) *"
         value={titleEn}
@@ -344,22 +361,7 @@ const ArticlesScreen = ({ navigation }) => {
         disabled={isSubmitting}
       />
 
-      <View style={styles.imageContainer}>
-        {(imageUri || imageUrl) && (
-          <Image 
-            source={{ uri: imageUri || imageUrl }} 
-            style={styles.previewImage} 
-          />
-        )}
-        <Button
-          mode="outlined"
-          onPress={selectImage}
-          style={styles.imageButton}
-          labelStyle={styles.imageButtonLabel}
-          disabled={isSubmitting}>
-          {imageUri || imageUrl ? 'Change Image' : 'Select Image *'}
-        </Button>
-      </View>
+      
 
       <View style={styles.buttonContainer}>
         <Button
@@ -424,7 +426,7 @@ const ArticlesScreen = ({ navigation }) => {
           style={styles.addButton}
           labelStyle={styles.buttonLabel}
           disabled={isSubmitting}>
-          Add Article
+          New Article
         </Button>
       </View>
     </LinearGradient>
@@ -544,6 +546,8 @@ const styles = StyleSheet.create({
   },
   button: {
     marginLeft: 8,
+    marginBottom: 30,
+    flex:1
   },
   descriptionInput: {
     height: 100,

@@ -31,12 +31,15 @@ const StartScreen = ({ navigation }) => {
         <Card style={styles.card}>
           <Card.Content>
             <Button
-              mode="contained"
+              mode="outlined"
               onPress={() => navigation.navigate('Home')}
-              style={styles.button}
-              labelStyle={styles.buttonLabel}
-              contentStyle={{paddingVertical: 12}}>
-              Quiz
+              style={styles.articleButton}
+              labelStyle={styles.articleButtonLabel}
+              contentStyle={{paddingVertical: 8}}
+              icon="gamepad-circle"
+              marginBottom="10"
+              >
+              Quiz Data
             </Button>
             
             <Button
@@ -46,7 +49,7 @@ const StartScreen = ({ navigation }) => {
               labelStyle={styles.articleButtonLabel}
               contentStyle={{paddingVertical: 8}}
               icon="book-open-variant">
-              View Articles
+              Articles Data
             </Button>
           </Card.Content>
         </Card>

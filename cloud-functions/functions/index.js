@@ -24,6 +24,7 @@ exports.sendArticleNotification = onDocumentCreated("articles/{articleId}", asyn
     const articleId = event.params.articleId;
     const articleTitle = newArticle.title?.en || "A new article has been added.";
     const articleSubtitle = `Article is about ${articleTitle}`;
+    const imageUrl = newArticle.imageUrl || "";
 
     try {
         // Fetch active FCM tokens
@@ -42,17 +43,41 @@ exports.sendArticleNotification = onDocumentCreated("articles/{articleId}", asyn
             return;
         }
 
-        // Notification payload
+        // Improved notification payload with proper image handling for both platforms
         const payload = {
             notification: {
                 title: "New Article Published!",
                 body: articleSubtitle,
             },
+            android: {
+                notification: {
+                    imageUrl: imageUrl,
+                    // Adding priority and channel ID for better delivery
+                    priority: "high",
+                    channelId: "default"
+                }
+            },
+            apns: {
+                payload: {
+                    aps: {
+                        // Required for image notifications on iOS
+                        "mutable-content": 1,
+                        // Set sound and badge
+                        sound: "default",
+                        badge: 1
+                    }
+                },
+                fcm_options: {
+                    image: imageUrl
+                }
+            },
             data: {
                 articleId: articleId,
                 title: articleTitle,
                 description: newArticle.description?.en || "",
-                imageUrl: newArticle.imageUrl || "",
+                imageUrl: imageUrl,
+                // Adding a timestamp can be useful for handling on the client
+                timestamp: Date.now().toString()
             },
         };
 
@@ -60,12 +85,36 @@ exports.sendArticleNotification = onDocumentCreated("articles/{articleId}", asyn
         const response = await messaging.sendEachForMulticast({ tokens, ...payload });
         console.log("\nNotification sent successfully to", tokens.length, "devices.\n");
 
-        // Log individual failures
+        // Log individual failures and handle token cleanup
+        const failedTokens = [];
         response.responses.forEach((res, idx) => {
             if (!res.success) {
                 console.error(`Error sending to ${tokens[idx]}:`, res.error);
+                
+                // Check if token is invalid and mark for cleanup
+                if (res.error.code === 'messaging/invalid-registration-token' || 
+                    res.error.code === 'messaging/registration-token-not-registered') {
+                    failedTokens.push(tokens[idx]);
+                }
             }
         });
+
+        // Update failed tokens in Firestore
+        if (failedTokens.length > 0) {
+            const batch = db.batch();
+            
+            // Find and update failed tokens
+            const failedTokensSnapshot = await db.collection("fcmTokens")
+                .where("token", "in", failedTokens)
+                .get();
+                
+            failedTokensSnapshot.docs.forEach(doc => {
+                batch.update(doc.ref, { isActive: false });
+            });
+            
+            await batch.commit();
+            console.log(`Marked ${failedTokens.length} invalid tokens as inactive`);
+        }
     } catch (error) {
         console.error("Error sending notification:", error);
     }

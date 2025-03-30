@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   View,
   FlatList,
@@ -21,6 +21,7 @@ import {
   useTheme,
 } from 'react-native-paper';
 import firestore from '@react-native-firebase/firestore';
+import debounce from 'lodash/debounce';
 
 const QuestionScreen = ({route, navigation}) => {
   const theme = useTheme();
@@ -44,6 +45,77 @@ const QuestionScreen = ({route, navigation}) => {
   const [optionDEn, setOptionDEn] = useState('');
   const [optionDHi, setOptionDHi] = useState('');
   const [correctOption, setCorrectOption] = useState('A');
+
+  // Debounced handlers for text input changes
+  const debouncedSetQuestionEn = useCallback(
+    debounce((text) => {
+      setQuestionEn(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetQuestionHi = useCallback(
+    debounce((text) => {
+      setQuestionHi(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetOptionAEn = useCallback(
+    debounce((text) => {
+      setOptionAEn(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetOptionAHi = useCallback(
+    debounce((text) => {
+      setOptionAHi(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetOptionBEn = useCallback(
+    debounce((text) => {
+      setOptionBEn(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetOptionBHi = useCallback(
+    debounce((text) => {
+      setOptionBHi(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetOptionCEn = useCallback(
+    debounce((text) => {
+      setOptionCEn(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetOptionCHi = useCallback(
+    debounce((text) => {
+      setOptionCHi(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetOptionDEn = useCallback(
+    debounce((text) => {
+      setOptionDEn(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetOptionDHi = useCallback(
+    debounce((text) => {
+      setOptionDHi(text);
+    }, 100),
+    []
+  );
 
   useEffect(() => {
     navigation.setOptions({
@@ -398,89 +470,99 @@ const QuestionScreen = ({route, navigation}) => {
             <Text style={styles.sectionTitle}>Question</Text>
             <TextInput
               label="Question (English)"
-              value={questionEn}
-              onChangeText={setQuestionEn}
+              defaultValue={questionEn}
+              onChangeText={debouncedSetQuestionEn}
               mode="outlined"
               style={styles.input}
               multiline
               numberOfLines={3}
+              maxLength={500}
             />
             <TextInput
               label="Question (Hindi)"
-              value={questionHi}
-              onChangeText={setQuestionHi}
+              defaultValue={questionHi}
+              onChangeText={debouncedSetQuestionHi}
               mode="outlined"
               style={styles.input}
               multiline
               numberOfLines={3}
+              maxLength={500}
             />
 
             <Divider style={styles.divider} />
             <Text style={styles.sectionTitle}>Option A</Text>
             <TextInput
               label="Option A (English)"
-              value={optionAEn}
-              onChangeText={setOptionAEn}
+              defaultValue={optionAEn}
+              onChangeText={debouncedSetOptionAEn}
               mode="outlined"
               style={styles.input}
+              maxLength={200}
             />
             <TextInput
               label="Option A (Hindi)"
-              value={optionAHi}
-              onChangeText={setOptionAHi}
+              defaultValue={optionAHi}
+              onChangeText={debouncedSetOptionAHi}
               mode="outlined"
               style={styles.input}
+              maxLength={200}
             />
 
             <Divider style={styles.divider} />
             <Text style={styles.sectionTitle}>Option B</Text>
             <TextInput
               label="Option B (English)"
-              value={optionBEn}
-              onChangeText={setOptionBEn}
+              defaultValue={optionBEn}
+              onChangeText={debouncedSetOptionBEn}
               mode="outlined"
               style={styles.input}
+              maxLength={200}
             />
             <TextInput
               label="Option B (Hindi)"
-              value={optionBHi}
-              onChangeText={setOptionBHi}
+              defaultValue={optionBHi}
+              onChangeText={debouncedSetOptionBHi}
               mode="outlined"
               style={styles.input}
+              maxLength={200}
             />
 
             <Divider style={styles.divider} />
             <Text style={styles.sectionTitle}>Option C</Text>
             <TextInput
               label="Option C (English)"
-              value={optionCEn}
-              onChangeText={setOptionCEn}
+              defaultValue={optionCEn}
+              onChangeText={debouncedSetOptionCEn}
               mode="outlined"
               style={styles.input}
+              maxLength={200}
             />
             <TextInput
               label="Option C (Hindi)"
-              value={optionCHi}
-              onChangeText={setOptionCHi}
+              defaultValue={optionCHi}
+              onChangeText={debouncedSetOptionCHi}
               mode="outlined"
               style={styles.input}
+              maxLength={200}
             />
 
             <Divider style={styles.divider} />
             <Text style={styles.sectionTitle}>Option D</Text>
             <TextInput
               label="Option D (English)"
-              value={optionDEn}
-              onChangeText={setOptionDEn}
+              defaultValue={optionDEn}
+              onChangeText={debouncedSetOptionDEn}
               mode="outlined"
               style={styles.input}
+              maxLength={200}
             />
             <TextInput
               label="Option D (Hindi)"
-              value={optionDHi}
-              onChangeText={setOptionDHi}
+              defaultValue={optionDHi}
+              onChangeText={debouncedSetOptionDHi}
               mode="outlined"
               style={styles.input}
+              maxLength={200}
             />
 
             <Divider style={styles.divider} />

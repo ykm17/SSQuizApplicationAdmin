@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   FlatList,
@@ -25,6 +25,7 @@ import * as ImagePicker from 'react-native-image-picker';
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 import RNFS from 'react-native-fs';
 import LinearGradient from 'react-native-linear-gradient';
+import debounce from 'lodash/debounce';
 
 const ArticlesScreen = ({ navigation }) => {
   const [articles, setArticles] = useState([]);
@@ -43,6 +44,42 @@ const ArticlesScreen = ({ navigation }) => {
   const [referenceLink, setReferenceLink] = useState('');
   const [imageUri, setImageUri] = useState(null);
   const [imageUrl, setImageUrl] = useState('');
+
+  // Debounced handlers for text input changes
+  const debouncedSetTitleEn = useCallback(
+    debounce((text) => {
+      setTitleEn(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetTitleHi = useCallback(
+    debounce((text) => {
+      setTitleHi(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetDescriptionEn = useCallback(
+    debounce((text) => {
+      setDescriptionEn(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetDescriptionHi = useCallback(
+    debounce((text) => {
+      setDescriptionHi(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetReferenceLink = useCallback(
+    debounce((text) => {
+      setReferenceLink(text);
+    }, 100),
+    []
+  );
 
   useEffect(() => {
     fetchArticles();
@@ -361,56 +398,59 @@ const ArticlesScreen = ({ navigation }) => {
       
       <TextInput
         label="Title (English) *"
-        value={titleEn}
-        onChangeText={setTitleEn}
+        defaultValue={titleEn}
+        onChangeText={debouncedSetTitleEn}
         mode="outlined"
         style={styles.input}
         error={!titleEn.trim()}
         disabled={isSubmitting}
+        maxLength={200}
       />
       <TextInput
         label="Title (Hindi) *"
-        value={titleHi}
-        onChangeText={setTitleHi}
+        defaultValue={titleHi}
+        onChangeText={debouncedSetTitleHi}
         mode="outlined"
         style={styles.input}
         error={!titleHi.trim()}
         disabled={isSubmitting}
+        maxLength={200}
       />
 
       <TextInput
         label="Description (English) *"
-        value={descriptionEn}
-        onChangeText={setDescriptionEn}
+        defaultValue={descriptionEn}
+        onChangeText={debouncedSetDescriptionEn}
         mode="outlined"
         style={[styles.input, styles.descriptionInput]}
         multiline
         numberOfLines={3}
         error={!descriptionEn.trim()}
         disabled={isSubmitting}
+        maxLength={1000}
       />
       <TextInput
         label="Description (Hindi) *"
-        value={descriptionHi}
-        onChangeText={setDescriptionHi}
+        defaultValue={descriptionHi}
+        onChangeText={debouncedSetDescriptionHi}
         mode="outlined"
         style={[styles.input, styles.descriptionInput]}
         multiline
         numberOfLines={3}
         error={!descriptionHi.trim()}
         disabled={isSubmitting}
+        maxLength={1000}
       />
 
       <TextInput
         label="Reference Link (Optional)"
-        value={referenceLink}
-        onChangeText={setReferenceLink}
+        defaultValue={referenceLink}
+        onChangeText={debouncedSetReferenceLink}
         mode="outlined"
         style={styles.input}
         disabled={isSubmitting}
+        maxLength={500}
       />
-
-      
 
       <View style={styles.buttonContainer}>
         <Button

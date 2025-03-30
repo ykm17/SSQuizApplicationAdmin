@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   FlatList,
@@ -17,6 +17,7 @@ import {
 } from 'react-native-paper';
 import firestore from '@react-native-firebase/firestore';
 import LinearGradient from 'react-native-linear-gradient';
+import debounce from 'lodash/debounce';
 
 const HomeScreen = ({ route, navigation }) => {
   const [topics, setTopics] = useState([]);
@@ -25,6 +26,21 @@ const HomeScreen = ({ route, navigation }) => {
   const [topicNameEn, setTopicNameEn] = useState('');
   const [topicNameHi, setTopicNameHi] = useState('');
   const [editingTopic, setEditingTopic] = useState(null);
+
+  // Debounced handlers for text input changes
+  const debouncedSetTopicNameEn = useCallback(
+    debounce((text) => {
+      setTopicNameEn(text);
+    }, 100),
+    []
+  );
+
+  const debouncedSetTopicNameHi = useCallback(
+    debounce((text) => {
+      setTopicNameHi(text);
+    }, 100),
+    []
+  );
 
   useEffect(() => {
     fetchTopics();
@@ -224,12 +240,13 @@ const HomeScreen = ({ route, navigation }) => {
 
           <TextInput
             label="Topic Name (English)"
-            value={topicNameEn}
-            onChangeText={setTopicNameEn}
+            defaultValue={topicNameEn}
+            onChangeText={debouncedSetTopicNameEn}
             mode="outlined"
             style={styles.input}
             outlineColor="#6200ee"
             activeOutlineColor="#6200ee"
+            maxLength={100}
             theme={{
               colors: {
                 primary: '#6200ee',
@@ -239,12 +256,13 @@ const HomeScreen = ({ route, navigation }) => {
           />
           <TextInput
             label="Topic Name (Hindi)"
-            value={topicNameHi}
-            onChangeText={setTopicNameHi}
+            defaultValue={topicNameHi}
+            onChangeText={debouncedSetTopicNameHi}
             mode="outlined"
             style={styles.input}
             outlineColor="#6200ee"
             activeOutlineColor="#6200ee"
+            maxLength={100}
             theme={{
               colors: {
                 primary: '#6200ee',

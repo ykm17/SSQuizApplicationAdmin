@@ -119,7 +119,7 @@ const QuestionScreen = ({route, navigation}) => {
 
   useEffect(() => {
     navigation.setOptions({
-      title: `Questions: ${topicName}`,
+      title: `Questions: ${topicName?.en || ''}`,
     });
 
     fetchQuestions();
@@ -423,14 +423,29 @@ const QuestionScreen = ({route, navigation}) => {
       {/* Total Questions Count */}
       <Surface style={styles.headerContainer} elevation={2}>
         <View style={styles.headerContent}>
-          <Text style={styles.totalQuestionsText}>
-            Total Questions: {questions.length}
-          </Text>
+          <View style={styles.headerTextContainer}>
+            <View style={styles.topicNameContainer}>
+              <View style={styles.languageLabel}>
+                <Text style={styles.languageText}>EN</Text>
+              </View>
+              <Text style={styles.topicName}>{topicName?.en || ''}</Text>
+            </View>
+            <View style={styles.topicNameContainer}>
+              <View style={styles.languageLabel}>
+                <Text style={styles.languageText}>HI</Text>
+              </View>
+              <Text style={styles.topicName}>{topicName?.hi || ''}</Text>
+            </View>
+            <Text style={styles.totalQuestionsText}>
+              Total Questions: {questions.length}
+            </Text>
+          </View>
           <Button
             mode="contained"
             onPress={showAddModal}
             style={styles.addButton}
-            icon="plus">
+            icon="plus"
+            compact>
             Add Question
           </Button>
         </View>
@@ -622,15 +637,33 @@ const styles = StyleSheet.create({
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  headerTextContainer: {
+    flex: 1,
+    minWidth: 200,
+  },
+  topicNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  topicName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
   },
   totalQuestionsText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#6200ee', // Purple text
+    color: '#6200ee',
   },
   addButton: {
-    marginLeft: 16,
+    marginLeft: 8,
+    minWidth: 120,
   },
   listContainer: {
     padding: 16,

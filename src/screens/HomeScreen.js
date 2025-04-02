@@ -174,7 +174,8 @@ const HomeScreen = ({ route, navigation }) => {
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => handleTopicPress(item)}
-              style={styles.touchContainer}>
+              style={styles.touchContainer}
+              activeOpacity={0.7}>
               <Card style={styles.topicCard} mode="elevated">
                 <Card.Content style={styles.cardContent}>
                   <View style={styles.topicTextContainer}>
@@ -357,6 +358,8 @@ const styles = StyleSheet.create({
   touchContainer: {
     flex: 1,
     margin: 8,
+    borderRadius: 18,
+    overflow: 'hidden',
   },
   topicCard: {
     borderRadius: 18,

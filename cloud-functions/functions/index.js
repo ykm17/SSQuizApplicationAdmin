@@ -43,16 +43,24 @@ exports.sendArticleNotification = onDocumentCreated("articles/{articleId}", asyn
             return;
         }
 
-        // Improved notification payload with proper image handling for both platforms
+        // Properly structured payload for both Android and iOS
         const payload = {
             notification: {
                 title: "New Article Published!",
                 body: articleSubtitle,
+                // iOS will use this image URL if available in notification
+                imageUrl: imageUrl
+            },
+            data: {
+                articleId: articleId,
+                title: articleTitle,
+                description: newArticle.description?.en || "",
+                imageUrl: imageUrl,
+                timestamp: Date.now().toString()
             },
             android: {
                 notification: {
                     imageUrl: imageUrl,
-                    // Adding priority and channel ID for better delivery
                     priority: "high",
                     channelId: "default"
                 }
@@ -60,25 +68,24 @@ exports.sendArticleNotification = onDocumentCreated("articles/{articleId}", asyn
             apns: {
                 payload: {
                     aps: {
-                        // Required for image notifications on iOS
-                        "mutable-content": 1,
-                        // Set sound and badge
-                        sound: "default",
-                        badge: 1
+                        alert: {
+                            title: "New Article Published!",
+                            body: articleSubtitle
+                        },
+                        // Enable mutable content for iOS image processing
+                        'mutable-content': 1,
+                        'content-available': 1,
+                        sound: "default"
+                    },
+                    // Include image URL in APNS payload for iOS
+                    fcm_options: {
+                        image: imageUrl
                     }
                 },
                 fcm_options: {
                     image: imageUrl
                 }
-            },
-            data: {
-                articleId: articleId,
-                title: articleTitle,
-                description: newArticle.description?.en || "",
-                imageUrl: imageUrl,
-                // Adding a timestamp can be useful for handling on the client
-                timestamp: Date.now().toString()
-            },
+            }
         };
 
         // Send notification to all valid tokens

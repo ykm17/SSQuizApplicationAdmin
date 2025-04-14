@@ -43,50 +43,44 @@ exports.sendArticleNotification = onDocumentCreated("articles/{articleId}", asyn
             return;
         }
 
-        // Properly structured payload for both Android and iOS
+        // Improved notification payload with proper image handling for both platforms
         const payload = {
+          notification: {
+            title: "New Article Published!",
+            body: articleSubtitle
+          },
+          data: {
+            articleId: articleId,
+            title: articleTitle,
+            description: newArticle.description?.en || "",
+            imageUrl: imageUrl,
+            timestamp: Date.now().toString()
+          },
+          android: {
             notification: {
-                title: "New Article Published!",
-                body: articleSubtitle,
-                // iOS will use this image URL if available in notification
-                imageUrl: imageUrl
-            },
-            data: {
-                articleId: articleId,
-                title: articleTitle,
-                description: newArticle.description?.en || "",
-                imageUrl: imageUrl,
-                timestamp: Date.now().toString()
-            },
-            android: {
-                notification: {
-                    imageUrl: imageUrl,
-                    priority: "high",
-                    channelId: "default"
-                }
-            },
-            apns: {
-                payload: {
-                    aps: {
-                        alert: {
-                            title: "New Article Published!",
-                            body: articleSubtitle
-                        },
-                        // Enable mutable content for iOS image processing
-                        'mutable-content': 1,
-                        'content-available': 1,
-                        sound: "default"
-                    },
-                    // Include image URL in APNS payload for iOS
-                    fcm_options: {
-                        image: imageUrl
-                    }
-                },
-                fcm_options: {
-                    image: imageUrl
-                }
+              imageUrl: imageUrl,
+              priority: "high",
+              channelId: "default"
             }
+          },
+          apns: {
+            payload: {
+              aps: {
+                "mutable-content": 1,
+                "content-available": 1,
+                sound: "default",
+                badge: 1,
+                alert: {
+                  title: "New Article Published!",
+                  body: articleSubtitle
+                }
+              },
+              image: imageUrl
+            }
+          }
         };
+        console.log("FCM Payload:");
+        console.dir(payload, { depth: null, colors: true });
 
         // Send notification to all valid tokens
         const response = await messaging.sendEachForMulticast({ tokens, ...payload });

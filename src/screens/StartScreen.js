@@ -24,7 +24,7 @@ const StartScreen = ({ navigation }) => {
       </View>
       
       <View style={styles.logoContainer}>
-        <Text style={styles.title}>Welcome to HVAC MCQ Master Admin App!</Text>
+        <Text style={styles.title}>Welcome to HVAC MCQ Admin App!</Text>
       </View>
       
       <View style={styles.cardContainer}>

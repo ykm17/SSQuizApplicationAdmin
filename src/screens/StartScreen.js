@@ -8,7 +8,7 @@ import { sampleData } from '../data/sampleData';
 const StartScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   //enable this for bulk upload
-  const [isBulkButtonVisible, setIsBulkButtonVisible] = useState(true);
+  const [isBulkButtonVisible, setIsBulkButtonVisible] = useState(false);
   const handleBulkUpload = async () => {
     setLoading(true);
     try {

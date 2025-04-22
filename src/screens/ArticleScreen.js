@@ -88,10 +88,20 @@ const ArticlesScreen = ({ navigation }) => {
   const fetchArticles = async () => {
     try {
       const querySnapshot = await firestore().collection('articles').get();
-      const articlesArray = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const articlesArray = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        // Convert Firestore timestamps to JavaScript Date objects
+        const createdAt = data.createdAt ? data.createdAt.toDate() : new Date(0);
+        return {
+          id: doc.id,
+          ...data,
+          createdAt,
+        };
+      });
+      
+      // Sort articles by createdAt date, newest first
+      articlesArray.sort((a, b) => b.createdAt - a.createdAt);
+      
       setArticles(articlesArray);
     } catch (error) {
       console.error('Error fetching articles:', error);
@@ -357,6 +367,13 @@ const ArticlesScreen = ({ navigation }) => {
           </Text>
           <Text variant="bodyMedium" style={styles.articleListSubtitle} numberOfLines={2}>
             {item.description?.en}
+          </Text>
+          <Text variant="bodySmall" style={styles.dateText}>
+            {item.createdAt ? item.createdAt.toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'short', 
+              day: 'numeric' 
+            }) : 'No date'}
           </Text>
         </View>
         <View style={styles.articleListActionContainer}>
@@ -746,6 +763,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 16,
     height: 32,
+  },
+  dateText: {
+    color: '#888888',
+    fontSize: 11,
+    marginTop: 2,
   },
   articleListActionContainer: {
     flexDirection: 'column',

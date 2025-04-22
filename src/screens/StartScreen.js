@@ -52,7 +52,7 @@ const StartScreen = ({ navigation }) => {
             />
           ))}
         </View>
-        
+        <Text style={[styles.title,{marginBottom:10}]}>HVAC MCQ ADMIN APP</Text>
         <View style={styles.cardContainer}>
           <Card style={styles.card}>
             <Card.Content>

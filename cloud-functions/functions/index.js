@@ -45,42 +45,41 @@ exports.sendArticleNotification = onDocumentCreated("articles/{articleId}", asyn
 
         // Improved notification payload with proper image handling for both platforms
         const payload = {
-          notification: {
-            title: "New Article Published!",
-            body: articleSubtitle
-          },
-          data: {
-            articleId: articleId,
-            title: articleTitle,
-            description: newArticle.description?.en || "",
-            imageUrl: imageUrl,
-            timestamp: Date.now().toString()
-          },
-          android: {
             notification: {
-              imageUrl: imageUrl,
-              priority: "high",
-              channelId: "default"
-            }
-          },
-          apns: {
-            payload: {
-              aps: {
-                "mutable-content": 1,
-                "content-available": 1,
-                sound: "default",
-                badge: 1,
-                alert: {
-                  title: "New Article Published!",
-                  body: articleSubtitle
+                title: "New Article Published!",
+                body: articleSubtitle,
+            },
+            android: {
+                notification: {
+                    imageUrl: imageUrl,
+                    // Adding priority and channel ID for better delivery
+                    priority: "high",
+                    channelId: "default"
                 }
-              },
-              image: imageUrl
-            }
-          }
+            },
+            apns: {
+                payload: {
+                    aps: {
+                        // Required for image notifications on iOS
+                        "mutable-content": 1,
+                        // Set sound and badge
+                        sound: "default",
+                        badge: 1
+                    }
+                },
+                fcm_options: {
+                    image: imageUrl
+                }
+            },
+            data: {
+                articleId: articleId,
+                title: articleTitle,
+                description: newArticle.description?.en || "",
+                imageUrl: imageUrl,
+                // Adding a timestamp can be useful for handling on the client
+                timestamp: Date.now().toString()
+            },
         };
-        console.log("FCM Payload:");
-        console.dir(payload, { depth: null, colors: true });
 
         // Send notification to all valid tokens
         const response = await messaging.sendEachForMulticast({ tokens, ...payload });

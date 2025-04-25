@@ -1,14 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Button, Card, Portal, Modal, ActivityIndicator } from 'react-native-paper';
 import LinearGradient from 'react-native-linear-gradient';
 import { bulkUpload } from '../utils/bulkUpload';
+import auth from '@react-native-firebase/auth';
 import { sampleData } from '../data/sampleData';
 
 const StartScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   //enable this for bulk upload
   const [isBulkButtonVisible, setIsBulkButtonVisible] = useState(false);
+
+  // Perform anonymous authentication when component mounts
+  useEffect(() => {
+    const signInAnonymously = async () => {
+      try {
+        setAuthLoading(true);
+        // Check if user is already signed in
+        const currentUser = auth().currentUser;
+        
+        if (!currentUser) {
+          // If not signed in, perform anonymous authentication
+          await auth().signInAnonymously();
+          console.log('User signed in anonymously');
+        } else {
+          console.log('User already signed in:', currentUser.uid);
+        }
+      } catch (error) {
+        console.error('Anonymous auth error:', error);
+        Alert.alert('Authentication Error', 'Failed to authenticate. Some features may not work properly.');
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    signInAnonymously();
+  }, []);
   const handleBulkUpload = async () => {
     setLoading(true);
     try {
@@ -28,10 +56,12 @@ const StartScreen = ({ navigation }) => {
   return (
     <>
       <Portal>
-        <Modal visible={loading} dismissable={false}>
+        <Modal visible={loading || authLoading} dismissable={false}>
           <View style={styles.modalContent}>
             <ActivityIndicator size="large" />
-            <Text style={styles.loadingText}>Uploading sample data...</Text>
+            <Text style={styles.loadingText}>
+              {authLoading ? 'Authenticating...' : 'Uploading sample data...'}
+            </Text>
           </View>
         </Modal>
       </Portal>
